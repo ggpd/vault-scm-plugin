@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                echo 'mvn clean install'
+                bat 'mvn clean install'
             }
         }
         stage('Store') {
