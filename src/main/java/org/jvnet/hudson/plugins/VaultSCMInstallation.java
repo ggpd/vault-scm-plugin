@@ -24,16 +24,18 @@
  */
 package org.jvnet.hudson.plugins;
 
+import hudson.CopyOnWrite;
 import hudson.Extension;
-import hudson.Util;
-import hudson.model.Hudson;
 import hudson.model.Node;
 import hudson.model.TaskListener;
 import hudson.slaves.NodeSpecific;
 import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstallation;
+
 import java.io.IOException;
 import org.kohsuke.stapler.DataBoundConstructor;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * Global configuration for the VaultSCM plugin, as shown on the Jenkins
@@ -44,7 +46,9 @@ import org.kohsuke.stapler.DataBoundConstructor;
 //@Extension
 public final class VaultSCMInstallation extends ToolInstallation implements NodeSpecific<VaultSCMInstallation> {
 
-    /**
+    private static final long serialVersionUID = 1358115406911533797L;
+
+	/**
      * The default vault install folder.
      */
     private static final String DEFAULT_VAULT_LOCATION = "C:\\Program Files (x86)\\SourceGear\\Vault Client\\vault.exe";
@@ -52,17 +56,16 @@ public final class VaultSCMInstallation extends ToolInstallation implements Node
     /**
      * The chosen vault install location.
      */
-    private transient String vaultLocation;
+    private String vaultLocation;
 
     @DataBoundConstructor
     public VaultSCMInstallation(String name, String home, String vaultLocation) {
         super(name, home, null);
-        this.vaultLocation = Util.fixEmpty(vaultLocation);
+        this.vaultLocation = ( (vaultLocation == null || vaultLocation.isEmpty()) ? DEFAULT_VAULT_LOCATION : vaultLocation);
     }
 
     public String getVaultLocation() {
-        return vaultLocation == null ? DEFAULT_VAULT_LOCATION
-                : this.vaultLocation;
+        return this.vaultLocation;
     }
 
     public void setVaultLocation(String vaultLocation) {
@@ -76,18 +79,25 @@ public final class VaultSCMInstallation extends ToolInstallation implements Node
     @Extension
     public static class DescriptorImpl extends ToolDescriptor<VaultSCMInstallation> {
 
+        @CopyOnWrite
+        private volatile VaultSCMInstallation[] installations = new VaultSCMInstallation[0];
+
         public String getDisplayName() {
             return "Sourcegear Vault";
         }
 
+        @SuppressFBWarnings(
+    value="EI_EXPOSE_REP", 
+    justification="I know what I'm doing")
         @Override
         public VaultSCMInstallation[] getInstallations() {
-            return Hudson.getInstance().getDescriptorByType(VaultSCM.VaultSCMDescriptor.class).getInstallations();
+            return installations;
         }
 
         @Override
         public void setInstallations(VaultSCMInstallation... installations) {
-            Hudson.getInstance().getDescriptorByType(VaultSCM.VaultSCMDescriptor.class).setInstallations(installations);
+            this.installations = installations;
+            save();
         }
     }
 }

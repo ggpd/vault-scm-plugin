@@ -25,7 +25,7 @@ public class VaultSCMRevisionState extends SCMRevisionState {
         buildDate = new Date();
     }
 
-    public void AddRevision(String key, long value) {
+    public void addRevision(String key, long value) {
         if (revisions == null) {
             revisions = new HashMap<String, Long>();
         }
@@ -37,11 +37,11 @@ public class VaultSCMRevisionState extends SCMRevisionState {
     }
 
     public void setDate(Date date) {
-        buildDate = date;
+        buildDate = new Date(date.getTime());
     }
 
     public Date getDate() {
-        return buildDate;
+        return new Date(buildDate.getTime());
     }
     public Date buildDate;
 }

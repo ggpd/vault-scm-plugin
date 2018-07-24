@@ -5,10 +5,12 @@
  */
 package org.jvnet.hudson.plugins;
 
-import hudson.model.AbstractBuild;
+import hudson.model.Run;
 import hudson.model.User;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.EditType;
+import hudson.scm.RepositoryBrowser;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -17,8 +19,8 @@ import org.kohsuke.stapler.export.Exported;
 
 public final class VaultSCMChangeLogSet extends ChangeLogSet<VaultSCMChangeLogSetEntry> {
 
-    protected VaultSCMChangeLogSet(AbstractBuild<?, ?> build) {
-        super(build);
+    protected VaultSCMChangeLogSet(Run<?,?> run, RepositoryBrowser<?> browser) {
+        super(run, browser);
         changes = new ArrayList<VaultSCMChangeLogSetEntry>();
     }
 
@@ -38,9 +40,13 @@ public final class VaultSCMChangeLogSet extends ChangeLogSet<VaultSCMChangeLogSe
 
     public static class VaultSCMChangeLogSetEntry extends ChangeLogSet.Entry {
 
+        private String comment;
+        private String version;
+        private String date;
+        private User user;
+
         @SuppressWarnings("rawtypes")
         public VaultSCMChangeLogSetEntry(String comment, String version, String date, ChangeLogSet parent, String userName) {
-            this.affectedFile = "User defined path";
             this.comment = comment;
             this.version = version;
             this.date = date;
@@ -64,6 +70,10 @@ public final class VaultSCMChangeLogSet extends ChangeLogSet<VaultSCMChangeLogSe
             return comment;
         }
 
+        public String getDate() {
+            return date;
+        }
+
         @Override
         public Collection<String> getAffectedPaths() {
             Collection<String> col = new ArrayList<String>();
@@ -81,24 +91,12 @@ public final class VaultSCMChangeLogSet extends ChangeLogSet<VaultSCMChangeLogSe
 
         @Exported
         public EditType getEditType() {
-            if (action.equalsIgnoreCase("delete")) {
-                return EditType.DELETE;
-            }
-            if (action.equalsIgnoreCase("add")) {
-                return EditType.ADD;
-            }
             return EditType.EDIT;
         }
 
         @Exported
         String getPath() {
-            return affectedFile;
+            return "";
         }
-        private String comment;
-        String affectedFile;
-        String version;
-        String date;
-        private User user;
-        private String action; //default is edit	
     }
 }

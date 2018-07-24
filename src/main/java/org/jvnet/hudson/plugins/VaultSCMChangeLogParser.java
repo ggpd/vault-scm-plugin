@@ -5,33 +5,34 @@
  */
 package org.jvnet.hudson.plugins;
 
-import hudson.model.AbstractBuild;
+import hudson.model.Run;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.ChangeLogSet;
+import hudson.scm.RepositoryBrowser;
 import hudson.scm.ChangeLogSet.Entry;
+
 import java.io.File;
 import java.io.IOException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.jvnet.hudson.plugins.VaultSCMChangeLogSet.VaultSCMChangeLogSetEntry;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import org.jvnet.hudson.plugins.VaultSCMChangeLogSet.VaultSCMChangeLogSetEntry;
 
 public class VaultSCMChangeLogParser extends ChangeLogParser {
 
     @Override
     @SuppressWarnings("rawtypes")
-    public ChangeLogSet<? extends Entry> parse(AbstractBuild build,
-            File changelogFile) throws IOException, SAXException {
+    public ChangeLogSet<? extends Entry> parse(Run build, RepositoryBrowser<?> browser, File changelogFile) throws IOException, SAXException {
 
         String userName;
         String date;
         String comment;
         String version;
         //open the changelog File
-        VaultSCMChangeLogSet cls = new VaultSCMChangeLogSet(build);
+        VaultSCMChangeLogSet cls = new VaultSCMChangeLogSet(build, browser);
         try {
 
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -48,8 +49,6 @@ public class VaultSCMChangeLogParser extends ChangeLogParser {
                 comment = mostRecentChange.getAttribute("comment");
                 version = mostRecentChange.getAttribute("version");
 
-
-
                 VaultSCMChangeLogSetEntry next = new VaultSCMChangeLogSetEntry(comment, version, date, cls, userName);
                 if (!cls.addEntry(next)) {
                     break;
@@ -59,7 +58,6 @@ public class VaultSCMChangeLogParser extends ChangeLogParser {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
 
         return cls;
     }
